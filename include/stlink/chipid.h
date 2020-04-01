@@ -53,6 +53,7 @@ enum stlink_stm32_chipids {
 	STLINK_CHIPID_STM32_L0_CAT5          = 0x447,
 	STLINK_CHIPID_STM32_F0_CAN           = 0x448,
 	STLINK_CHIPID_STM32_F7               = 0x449,	/* This ID is found on the NucleoF746ZG board */
+	STLINK_CHIPID_STM32_H7442            = 0x450,   /* covers STM32H742, STM32H743/753 and STM32H750 devices */
 	STLINK_CHIPID_STM32_F7XXXX           = 0x451,
 	STLINK_CHIPID_STM32_F72XXX           = 0x452,	/* This ID is found on the NucleoF722ZE board */
 	STLINK_CHIPID_STM32_L011             = 0x457,
@@ -63,7 +64,8 @@ enum stlink_stm32_chipids {
 	STLINK_CHIPID_STM32_G4_CAT2          = 0x468, /* See: RM 0440 s46.6.1 "MCU device ID code" */
 	STLINK_CHIPID_STM32_G4_CAT3          = 0x469,
 	STLINK_CHIPID_STM32_L4RX             = 0x470, /* taken from the STM32L4R9I-DISCO board */
-	STLINK_CHIPID_STM32_WB55             = 0x495
+	STLINK_CHIPID_STM32_L552             = 0x472, /* covers STM32L552 and STM32L562 devices */
+	STLINK_CHIPID_STM32_WB55             = 0x495,
 };
 
 /**
