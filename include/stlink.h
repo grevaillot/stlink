@@ -91,6 +91,17 @@ extern "C" {
         STLINK_FLASH_TYPE_WB
     };
 
+    enum stlink_stm32_coreid {
+        STLINK_STM32_COREID_CORTEX = 0x2ba01477,
+        STLINK_STM32_COREID_F0 = 0x0bb11477,
+        STLINK_STM32_COREID_L0 = 0x0bc11477,
+        STLINK_STM32_COREID_L5 = 0x0be12477,
+        STLINK_STM32_COREID_F1 = 0x1ba01477,
+        STLINK_STM32_COREID_F7 = 0x5ba02477,
+        STLINK_STM32_COREID_H7 = 0x6ba02477
+    };
+
+
     struct stlink_reg {
         uint32_t r[16];
         uint32_t s[32];
