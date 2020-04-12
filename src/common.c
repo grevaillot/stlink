@@ -914,7 +914,7 @@ int stlink_load_device_params(stlink_t *sl) {
 
     params = stlink_chipid_get_params(sl->chip_id);
     if ((params == NULL) || (params->flash_type == STLINK_FLASH_TYPE_UNKNOWN)) {
-        ELOG("Unknown or Unsupported device, Chip id:%#x\n", chip_id);
+        ELOG("Unknown or Unsupported device, Core id:%#010x, Chip id:%#x\n", sl->core_id, sl->chip_id);
         return -1;
     }
 
