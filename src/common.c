@@ -3103,7 +3103,7 @@ static int stlink_write_option_bytes_l1(stlink_t *sl, uint8_t* base, stm32_addr_
  * @param base option bytes to write
  * @return 0 on success, -ve on failure.
  */
-static int stlink_write_option_bytes_l496x(stlink_t *sl, uint8_t* base, stm32_addr_t addr, uint32_t len) {
+static int stlink_write_option_bytes_l4(stlink_t *sl, uint8_t* base, stm32_addr_t addr, uint32_t len) {
 
     uint32_t val;
 
@@ -3117,20 +3117,9 @@ static int stlink_write_option_bytes_l496x(stlink_t *sl, uint8_t* base, stm32_ad
         return -1;
     }
 
-    /* Unlock option bytes if necessary (ref manuel page 61) */
-    stlink_read_debug32(sl, STM32L4_FLASH_CR, &val);
-    if ((val & (1 << STM32L4_FLASH_CR_OPTLOCK))) {
-
-        /* disable option byte write protection. */
-        stlink_write_debug32(sl, STM32L4_FLASH_OPTKEYR, FLASH_OPTKEY1);
-        stlink_write_debug32(sl, STM32L4_FLASH_OPTKEYR, FLASH_OPTKEY2);
-
-        /* check that the lock is no longer set. */
-        stlink_read_debug32(sl, STM32L4_FLASH_CR, &val);
-        if ((val & (1 << STM32L4_FLASH_CR_OPTLOCK))) {
-            ELOG("Options bytes unlock failed! System reset required to be able to unlock it again!\n");
-            return -1;
-        }
+    if (unlock_flash_option_if(sl)) {
+        ELOG("Flash option unlock failed!\n");
+        return -1;
     }
 
     /* Write options bytes */
@@ -3375,7 +3364,8 @@ int stlink_write_option_bytes(stlink_t *sl, stm32_addr_t addr, uint8_t* base, ui
         case STLINK_CHIPID_STM32_L0_CAT2:
             return stlink_write_option_bytes_l0_cat2(sl, base, addr, len);
         case STLINK_CHIPID_STM32_L496X:
-            return stlink_write_option_bytes_l496x(sl, base, addr, len);
+        case STLINK_CHIPID_STM32_L4:
+            return stlink_write_option_bytes_l4(sl, base, addr, len);
         case STLINK_CHIPID_STM32_L152_RE:
         case STLINK_CHIPID_STM32_L1_HIGH:
             return stlink_write_option_bytes_l1(sl, base, addr, len);
