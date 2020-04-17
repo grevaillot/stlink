@@ -333,7 +333,9 @@ static const struct stlink_chipid_params devices[] = {
             .flash_pagesize = 0x800,		// Page sizes listed in Table 4 (pg 56)
             .sram_size = 0x8000,		// "SRAM" byte size in hex from Table 2 (pg 50)
             .bootrom_base = 0x1fffd800,		// "System memory" starting address from Table 2
-            .bootrom_size = 0x2000 		// "System memory" byte size in hex from Table 2
+            .bootrom_size = 0x2000, 		// "System memory" byte size in hex from Table 2
+            .option_base = 0x1FFFF800,
+            .option_size = 4,
         },
         {
             //Use this as an example for mapping future chips:
@@ -345,7 +347,9 @@ static const struct stlink_chipid_params devices[] = {
             .flash_pagesize = 0x400,		// Page sizes listed in Table 4
             .sram_size = 0x1800,		// "SRAM" byte size in hex from Table 2
             .bootrom_base = 0x1fffec00,		// "System memory" starting address from Table 2
-            .bootrom_size = 0xC00 		// "System memory" byte size in hex from Table 2
+            .bootrom_size = 0xC00, 		// "System memory" byte size in hex from Table 2
+            .option_base = 0x1FFFF800,
+            .option_size = 4,
         },
         {
             //Use this as an example for mapping future chips:
@@ -357,7 +361,9 @@ static const struct stlink_chipid_params devices[] = {
             .flash_pagesize = 0x400,		// Page sizes listed in Table 4
             .sram_size = 0x1000,		// "SRAM" byte size in hex from Table 2
             .bootrom_base = 0x1fffec00,		// "System memory" starting address from Table 2
-            .bootrom_size = 0xC00 		// "System memory" byte size in hex from Table 2
+            .bootrom_size = 0xC00, 		// "System memory" byte size in hex from Table 2
+            .option_base = 0x1FFFF800,
+            .option_size = 4,
         },
         {
             // STM32F30x
