@@ -53,6 +53,9 @@
 #define FLASH_KEY1 0x45670123
 #define FLASH_KEY2 0xcdef89ab
 
+#define FLASH_OPTKEY1 0x08192A3B
+#define FLASH_OPTKEY2 0x4C5D6E7F
+
 #define FLASH_SR_BSY 0
 #define FLASH_SR_EOP 5
 
@@ -2743,6 +2746,8 @@ static int stlink_write_option_bytes_gx(stlink_t *sl, uint8_t* base, stm32_addr_
     (void) addr;
     (void) len;
 
+	wait_flash_busy(sl);
+
     if (unlock_flash_if(sl)) {
         ELOG("Flash unlock failed! System reset required to be able to unlock it again!\n");
         return -1;
@@ -2753,8 +2758,8 @@ static int stlink_write_option_bytes_gx(stlink_t *sl, uint8_t* base, stm32_addr_
     if ((val & (1 << STM32Gx_FLASH_CR_OPTLOCK))) {
 
         /* disable option byte write protection. */
-        stlink_write_debug32(sl, STM32Gx_FLASH_OPTKEYR, 0x08192A3B);
-        stlink_write_debug32(sl, STM32Gx_FLASH_OPTKEYR, 0x4C5D6E7F);
+        stlink_write_debug32(sl, STM32Gx_FLASH_OPTKEYR, FLASH_OPTKEY1);
+        stlink_write_debug32(sl, STM32Gx_FLASH_OPTKEYR, FLASH_OPTKEY2);
 
         /* check that the lock is no longer set. */
         stlink_read_debug32(sl, STM32Gx_FLASH_CR, &val);
@@ -2813,18 +2818,12 @@ static int stlink_write_option_bytes_l0_cat2(stlink_t *sl, uint8_t* base, stm32_
     (void) addr;
     (void) len;
 
-    stlink_read_debug32(sl, STM32L0_FLASH_REGS_ADDR + FLASH_PECR_OFF, &val);
-    if (val & STM32L0_FLASH_PELOCK_BIT) {
-        WLOG("Unlocking flash\n");
-        //Unlock data EEPROM and the FLASH_PECR register (reference page 74)
-        stlink_write_debug32(sl, STM32L0_FLASH_REGS_ADDR + FLASH_PEKEYR_OFF, 0x89ABCDEF);
-        stlink_write_debug32(sl, STM32L0_FLASH_REGS_ADDR + FLASH_PEKEYR_OFF, 0x02030405);
 
-        stlink_read_debug32(sl, STM32L0_FLASH_REGS_ADDR + FLASH_PECR_OFF, &val);
-        if (val & STM32L0_FLASH_PELOCK_BIT) {
-            ELOG("Flash unlock failed! System reset required to be able to unlock it again!\n");
-            return -1;
-        }
+    wait_flash_busy(sl);
+
+    if (unlock_flash_if(sl)) {
+        ELOG("Flash unlock failed! System reset required to be able to unlock it again!\n");
+        return -1;
     }
 
     stlink_read_debug32(sl, STM32L0_FLASH_REGS_ADDR + FLASH_PECR_OFF, &val);
@@ -2852,6 +2851,8 @@ static int stlink_write_option_bytes_l0_cat2(stlink_t *sl, uint8_t* base, stm32_
     val |= (STM32L0_FLASH_OBL_LAUNCH_BIT);
     stlink_write_debug32(sl, STM32L0_FLASH_REGS_ADDR + FLASH_PECR_OFF, val);
 
+    lock_flash(sl);
+
     return 0;
 }
 
@@ -2867,18 +2868,11 @@ static int stlink_write_option_bytes_l1(stlink_t *sl, uint8_t* base, stm32_addr_
     uint32_t val;
     uint32_t data;
 
-    stlink_read_debug32(sl, STM32L1_FLASH_REGS_ADDR + FLASH_PECR_OFF, &val);
-    if (val & STM32L1_FLASH_PELOCK_BIT) {
-        WLOG("Unlocking flash\n");
-        //Unlock data EEPROM and the FLASH_PECR register (reference page 74)
-        stlink_write_debug32(sl, STM32L1_FLASH_REGS_ADDR + FLASH_PEKEYR_OFF, 0x89ABCDEF);
-        stlink_write_debug32(sl, STM32L1_FLASH_REGS_ADDR + FLASH_PEKEYR_OFF, 0x02030405);
+    wait_flash_busy(sl);
 
-        stlink_read_debug32(sl, STM32L1_FLASH_REGS_ADDR + FLASH_PECR_OFF, &val);
-        if (val & STM32L1_FLASH_PELOCK_BIT) {
-            ELOG("Flash unlock failed! System reset required to be able to unlock it again!\n");
-            return -1;
-        }
+    if (unlock_flash_if(sl)) {
+        ELOG("Flash unlock failed! System reset required to be able to unlock it again!\n");
+        return -1;
     }
 
     stlink_read_debug32(sl, STM32L1_FLASH_REGS_ADDR + FLASH_PECR_OFF, &val);
@@ -2894,7 +2888,6 @@ static int stlink_write_option_bytes_l1(stlink_t *sl, uint8_t* base, stm32_addr_
             return -1;
         }
     }
-
 
     /* Clear errors */
     stlink_write_debug32(sl, STM32L1_FLASH_REGS_ADDR + FLASH_SR_OFF, 0x00003F00);
@@ -2935,6 +2928,8 @@ static int stlink_write_option_bytes_l1(stlink_t *sl, uint8_t* base, stm32_addr_
     val |= (STM32L1_FLASH_OBL_LAUNCH_BIT);
     stlink_write_debug32(sl, STM32L1_FLASH_REGS_ADDR + FLASH_PECR_OFF, val);
 
+    lock_flash(sl);
+
     return 0;
 }
 
@@ -2952,20 +2947,11 @@ static int stlink_write_option_bytes_l496x(stlink_t *sl, uint8_t* base, stm32_ad
     (void) addr;
     (void) len;
 
-    /* Unlock flash if necessary  */
-    stlink_read_debug32(sl, STM32L4_FLASH_CR, &val);
-    if ((val & (1u << STM32L4_FLASH_CR_LOCK))) {
+	wait_flash_busy(sl);
 
-        /* disable flash write protection. */
-        stlink_write_debug32(sl, STM32L4_FLASH_KEYR, 0x45670123);
-        stlink_write_debug32(sl, STM32L4_FLASH_KEYR, 0xCDEF89AB);
-
-        // check that the lock is no longer set.
-        stlink_read_debug32(sl, STM32L4_FLASH_CR, &val);
-        if ((val & (1u << STM32L4_FLASH_CR_LOCK))) {
-            ELOG("Flash unlock failed! System reset required to be able to unlock it again!\n");
-            return -1;
-        }
+    if (unlock_flash_if(sl)) {
+        ELOG("Flash unlock failed! System reset required to be able to unlock it again!\n");
+        return -1;
     }
 
     /* Unlock option bytes if necessary (ref manuel page 61) */
@@ -2973,8 +2959,8 @@ static int stlink_write_option_bytes_l496x(stlink_t *sl, uint8_t* base, stm32_ad
     if ((val & (1 << STM32L4_FLASH_CR_OPTLOCK))) {
 
         /* disable option byte write protection. */
-        stlink_write_debug32(sl, STM32L4_FLASH_OPTKEYR, 0x08192A3B);
-        stlink_write_debug32(sl, STM32L4_FLASH_OPTKEYR, 0x4C5D6E7F);
+        stlink_write_debug32(sl, STM32L4_FLASH_OPTKEYR, FLASH_OPTKEY1);
+        stlink_write_debug32(sl, STM32L4_FLASH_OPTKEYR, FLASH_OPTKEY2);
 
         /* check that the lock is no longer set. */
         stlink_read_debug32(sl, STM32L4_FLASH_CR, &val);
@@ -3009,10 +2995,9 @@ static int stlink_write_option_bytes_l496x(stlink_t *sl, uint8_t* base, stm32_ad
     stlink_read_debug32(sl, STM32L4_FLASH_CR, &val);
     val |= (1u << STM32L4_FLASH_CR_OPTLOCK);
     stlink_write_debug32(sl, STM32L4_FLASH_CR, val);
+
     /* Re-lock flash. */
-    stlink_read_debug32(sl, STM32L4_FLASH_CR, &val);
-    val |= (1u << STM32L4_FLASH_CR_LOCK);
-    stlink_write_debug32(sl, STM32L4_FLASH_CR, val);
+    lock_flash(sl);
 
     return 0;
 }
@@ -3033,13 +3018,20 @@ static int stlink_write_option_bytes_f2(stlink_t *sl, uint8_t *base, stm32_addr_
 
     option_byte =  *(uint32_t*) (base);
 
+    wait_flash_busy(sl);
+
+    if (unlock_flash_if(sl)) {
+        ELOG("Flash unlock failed! System reset required to be able to unlock it again!\n");
+        return -1;
+    }
+
     stlink_read_debug32(sl, FLASH_F2_OPT_CR, &val);
     if (val & FLASH_F2_OPT_LOCK_BIT) {
         WLOG("Unlocking option flash\n");
         //Unlock the FLASH_OPT_CR register (FLASH Programming manual page 15)
         //https://www.st.com/resource/en/programming_manual/cd00233952.pdf
-        stlink_write_debug32(sl, FLASH_F2_OPT_KEYR, 0x08192A3B);
-        stlink_write_debug32(sl, FLASH_F2_OPT_KEYR, 0x4C5D6E7F);
+        stlink_write_debug32(sl, FLASH_F2_OPT_KEYR, FLASH_OPTKEY1);
+        stlink_write_debug32(sl, FLASH_F2_OPT_KEYR, FLASH_OPTKEY2);
 
         stlink_read_debug32(sl, FLASH_F2_OPT_CR, &val);
         if (val & FLASH_F2_OPT_LOCK_BIT) {
@@ -3089,13 +3081,20 @@ static int stlink_write_option_bytes_f4(stlink_t *sl, uint8_t* base, stm32_addr_
 
     option_byte =  *(uint32_t*) (base);
 
+    wait_flash_busy(sl);
+
+    if (unlock_flash_if(sl)) {
+        ELOG("Flash unlock failed! System reset required to be able to unlock it again!\n");
+        return -1;
+    }
+
     stlink_read_debug32(sl, FLASH_F4_OPT_CR, &val);
     if (val & FLASH_F4_OPT_LOCK_BIT) {
         WLOG("Unlocking option flash\n");
         //Unlock the FLASH_OPT_CR register (FLASH Programming manual page 15)
         //https://www.st.com/resource/en/programming_manual/cd00233952.pdf
-        stlink_write_debug32(sl, FLASH_F4_OPT_KEYR, 0x08192A3B);
-        stlink_write_debug32(sl, FLASH_F4_OPT_KEYR, 0x4C5D6E7F);
+        stlink_write_debug32(sl, FLASH_F4_OPT_KEYR, FLASH_OPTKEY1);
+        stlink_write_debug32(sl, FLASH_F4_OPT_KEYR, FLASH_OPTKEY2);
 
         stlink_read_debug32(sl, FLASH_F4_OPT_CR, &val);
         if (val & FLASH_F4_OPT_LOCK_BIT) {
@@ -3125,6 +3124,8 @@ static int stlink_write_option_bytes_f4(stlink_t *sl, uint8_t* base, stm32_addr_
     stlink_write_debug32(sl, FLASH_F4_OPT_CR, val | 0x00000001);
 
     DLOG("STM32 F4 option bytes are written\n");
+
+    lock_flash(sl);
 
 	return 0;
 }
@@ -3156,8 +3157,8 @@ int stlink_read_option_bytes_f2(stlink_t *sl, uint32_t* option_byte) {
         WLOG("Unlocking option flash\n");
         //Unlock the FLASH_OPT_CR register (FLASH Programming manual page 15)
         //https://www.st.com/resource/en/programming_manual/cd00233952.pdf
-        stlink_write_debug32(sl, FLASH_F2_OPT_KEYR, 0x08192A3B);
-        stlink_write_debug32(sl, FLASH_F2_OPT_KEYR, 0x4C5D6E7F);
+        stlink_write_debug32(sl, FLASH_F2_OPT_KEYR, FLASH_OPTKEY1);
+        stlink_write_debug32(sl, FLASH_F2_OPT_KEYR, FLASH_OPTKEY2);
 
         stlink_read_debug32(sl, FLASH_F2_OPT_CR, &val);
         if (val & FLASH_F2_OPT_LOCK_BIT) {
@@ -3189,8 +3190,8 @@ int stlink_read_option_bytes_f4(stlink_t *sl, uint32_t* option_byte) {
         WLOG("Unlocking option flash\n");
         //Unlock the FLASH_OPT_CR register (FLASH Programming manual page 15)
         //https://www.st.com/resource/en/programming_manual/cd00233952.pdf
-        stlink_write_debug32(sl, FLASH_F4_OPT_KEYR, 0x08192A3B);
-        stlink_write_debug32(sl, FLASH_F4_OPT_KEYR, 0x4C5D6E7F);
+        stlink_write_debug32(sl, FLASH_F4_OPT_KEYR, FLASH_OPTKEY1);
+        stlink_write_debug32(sl, FLASH_F4_OPT_KEYR, FLASH_OPTKEY2);
 
         stlink_read_debug32(sl, FLASH_F4_OPT_CR, &val);
         if (val & FLASH_F4_OPT_LOCK_BIT) {
