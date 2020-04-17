@@ -3195,7 +3195,7 @@ static int stlink_write_option_bytes_f0(stlink_t *sl, uint8_t *base, stm32_addr_
     stlink_write_debug32(sl, FLASH_CR, v);
 
     /* write option */
-    stlink_write_debug32(sl, addr, option_byte);
+    stlink_write_debug16(sl, addr, option_byte);
 
     /* check and clear end of programming flag */
     stlink_read_debug32(sl, FLASH_SR, &v);
