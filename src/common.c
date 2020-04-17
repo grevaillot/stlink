@@ -1215,6 +1215,12 @@ int stlink_write_debug32(stlink_t *sl, uint32_t addr, uint32_t data) {
     return sl->backend->write_debug32(sl, addr, data);
 }
 
+int stlink_write_debug16(stlink_t *sl, uint32_t addr, uint16_t data) {
+    DLOG("*** stlink_write_mem16 %x to %#x\n", data, addr);
+    memcpy(sl->q_buf, &data, sizeof(data));
+    return sl->backend->write_mem16(sl, addr, sizeof(data));
+}
+
 int stlink_write_mem32(stlink_t *sl, uint32_t addr, uint16_t len) {
     DLOG("*** stlink_write_mem32 %u bytes to %#x\n", len, addr);
     if (len % 4 != 0) {
