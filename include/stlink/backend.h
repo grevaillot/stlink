@@ -17,6 +17,7 @@
         int (*read_mem32) (stlink_t *sl, uint32_t addr, uint16_t len);
         int (*write_debug32) (stlink_t *sl, uint32_t addr, uint32_t data);
         int (*write_mem32) (stlink_t *sl, uint32_t addr, uint16_t len);
+        int (*write_mem16) (stlink_t *sl, uint32_t addr, uint16_t data);
         int (*write_mem8) (stlink_t *sl, uint32_t addr, uint16_t len);
         int (*read_all_regs) (stlink_t *sl, struct stlink_reg * regp);
         int (*read_reg) (stlink_t *sl, int r_idx, struct stlink_reg * regp);

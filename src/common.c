@@ -1234,6 +1234,11 @@ int stlink_read_mem32(stlink_t *sl, uint32_t addr, uint16_t len) {
     return sl->backend->read_mem32(sl, addr, len);
 }
 
+int stlink_write_mem16(stlink_t *sl, uint32_t addr, uint16_t len) {
+    DLOG("*** stlink_write_mem16 ***\n");
+    return sl->backend->write_mem16(sl, addr, len);
+}
+
 int stlink_write_mem8(stlink_t *sl, uint32_t addr, uint16_t len) {
     DLOG("*** stlink_write_mem8 ***\n");
     if (len > 0x40){ // !!! never ever: Writing more then 0x40 bytes gives unexpected behaviour

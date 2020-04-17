@@ -282,6 +282,29 @@ int _stlink_usb_write_mem32(stlink_t *sl, uint32_t addr, uint16_t len) {
     return 0;
 }
 
+int _stlink_usb_write_mem16(stlink_t *sl, uint32_t addr, uint16_t len) {
+    struct stlink_libusb * const slu = sl->backend_data;
+    unsigned char* const data = sl->q_buf;
+    unsigned char* const cmd  = sl->c_buf;
+    int i, ret;
+
+    i = fill_command(sl, SG_DXFER_TO_DEV, 0);
+    cmd[i++] = STLINK_DEBUG_COMMAND;
+    cmd[i++] = STLINK_DEBUG_APIV2_WRITEMEM_16BIT;
+    write_uint32(&cmd[i], addr);
+    write_uint16(&cmd[i + 4], len);
+    ret = send_only(slu, 0, cmd, slu->cmd_len);
+    if (ret == -1)
+        return ret;
+
+    ret = send_only(slu, 1, data, len);
+    if (ret == -1)
+        return ret;
+
+    return 0;
+}
+
+
 int _stlink_usb_write_mem8(stlink_t *sl, uint32_t addr, uint16_t len) {
     struct stlink_libusb * const slu = sl->backend_data;
     unsigned char* const data = sl->q_buf;
@@ -857,6 +880,7 @@ static stlink_backend_t _stlink_usb_backend = {
     _stlink_usb_read_mem32,
     _stlink_usb_write_debug32,
     _stlink_usb_write_mem32,
+    _stlink_usb_write_mem16,
     _stlink_usb_write_mem8,
     _stlink_usb_read_all_regs,
     _stlink_usb_read_reg,

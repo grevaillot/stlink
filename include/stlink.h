@@ -51,6 +51,8 @@ extern "C" {
 #define STLINK_JTAG_DRIVE_NRST 0x3c
 
 #define STLINK_DEBUG_APIV2_SWD_SET_FREQ    0x43
+#define STLINK_DEBUG_APIV2_READMEM_16BIT   0x47
+#define STLINK_DEBUG_APIV2_WRITEMEM_16BIT  0x48
 
 #define STLINK_APIV3_SET_COM_FREQ           0x61
 #define STLINK_APIV3_GET_COM_FREQ           0x62
@@ -198,6 +200,7 @@ typedef struct flash_loader {
     int stlink_read_mem32(stlink_t *sl, uint32_t addr, uint16_t len);
     int stlink_write_debug32(stlink_t *sl, uint32_t addr, uint32_t data);
     int stlink_write_mem32(stlink_t *sl, uint32_t addr, uint16_t len);
+    int stlink_write_mem16(stlink_t *sl, uint32_t addr, uint16_t len);
     int stlink_write_mem8(stlink_t *sl, uint32_t addr, uint16_t len);
     int stlink_read_all_regs(stlink_t *sl, struct stlink_reg *regp);
     int stlink_read_all_unsupported_regs(stlink_t *sl, struct stlink_reg *regp);
